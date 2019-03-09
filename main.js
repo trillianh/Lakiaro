@@ -3,7 +3,8 @@ $(function() {
     window.rocks = [];
     window.roots = [];
     window.max_tries = 10000;
-
+    var shallow = 0;
+    var max_shallow = 25;
     window.render = function (field_with_roots) {
         if (!field_with_roots) {
             console.log("Can not generate.");
@@ -34,6 +35,7 @@ $(function() {
             window.i++;
             field_with_roots = window.field.add_roots(window.base_field, i);
         }
+        $("#shallow_digs span").html(shallow+" / "+max_shallow);
 
         console.log(window.i);
         if (window.i >= window.max_tries) {
@@ -59,12 +61,16 @@ $(function() {
     }
 
     window.start_game = function () {
+        $("#victory").hide();
         args = window.getRoots();
         window.field = new Field(args);
         console.log(window.field.roots_number);
         window.game_field = window.prepare(false);
         window.render(window.game_field);
         window.add_game_overlay();
+        shallow = 0;
+        $("#shallow_digs span").css("background-color", "transparent");
+        $("#shallow_digs span").html(shallow+" / "+max_shallow);
     };
 
     window.getRoots = function () {
@@ -78,8 +84,21 @@ $(function() {
         window.start_game();
     });
 
-    $("#undo").click(function () {
-        window.rocks.splice(-1,1);
+
+    $("#reveal").click(function () {
+        $(field.game_overlay).find('.tile').addClass('revealed');
+        $(field.game_overlay).find('.tile').removeClass('Shallowed_soil');
+        $("#victory").show();
+    });
+    $("#hoe_level").click(function () {
+        max_shallow =  $('#hoe_level').val();
+        $("#shallow_digs span").html(shallow+" / "+max_shallow);
+        if(shallow>=max_shallow){
+            $("#shallow_digs span").css("background-color", "red");
+        }
+        else{
+            $("#shallow_digs span").css("background-color", "transparent");
+        }
     });
 
     $(field.solve_overlay).on('click', '.tile', function () {
@@ -121,8 +140,10 @@ $(function() {
         var cur_tile = window.game_field[y][x].constructor.name;
         if (cur_tile == "Root") {
             $(this).css('background', '#ff000052')
+            $(this).addClass('revealed')
             $(this).addClass('damaged')
         } else {
+            $(this).removeClass('Shallowed_soil')
             $(this).addClass('revealed')
         }
 
@@ -147,6 +168,7 @@ $(function() {
 
         for (var i = 0; i < around_tiles.length; i++) {
             if (window.game_field[around_tiles[i][0]][around_tiles[i][1]].constructor.name === "Soil") {
+                $(field.game_overlay).find('[data-y="' + around_tiles[i][0] + '"][data-x="' + around_tiles[i][1] + '"]').removeClass('Shallowed_soil')
                 $(field.game_overlay).find('[data-y="' + around_tiles[i][0] + '"][data-x="' + around_tiles[i][1] + '"]').addClass('revealed');
             }
         }
@@ -157,6 +179,7 @@ $(function() {
         var soil_left = (field.size * field.size) - (16 + field.roots_number + $(field.game_overlay).find('.revealed').length);
         if (soil_left === 0) {
             $(field.game_overlay).find('.game').addClass('revealed');
+            $(field.game_overlay).find('.tile').removeClass('Shallowed_soil');
             $("#victory").show();
         }
 
@@ -164,15 +187,24 @@ $(function() {
 
     $(field.game_overlay).on('contextmenu', '.tile', function(e) {
         event.preventDefault();
-
         var y = $(this).data("y");
         var x = $(this).data("x");
-
-        if (window.game_field[y][x].constructor.name === "Soil") {
-            $(this).css('opacity', '0.7')
-        } else {
-            $(this).addClass('revealed')
+        if(shallow<$('#hoe_level').val()){
+            $("#shallow_digs span").css("background-color", "transparent");
+            if (window.game_field[y][x].constructor.name === "Soil"&!($(this).hasClass("revealed"))&!$(this).hasClass("Shallowed_soil")) {
+                $(this).addClass('Shallowed_soil')
+                shallow ++;
+                //console.log($(this).hasClass("revealed"));
+            } else if(window.game_field[y][x].constructor.name !== "Soil"&!($(this).hasClass("revealed"))) {
+                shallow ++;
+                $(this).addClass('revealed')
+            }
         }
+        else{
+            $("#shallow_digs span").css("background-color", "red");
+            
+        }
+        $("#shallow_digs span").html(shallow+" / "+max_shallow);
     });
 
     for (var y = 0; y < window.field.size; y++) {

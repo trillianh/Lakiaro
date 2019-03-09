@@ -1,3 +1,8 @@
+
+body{
+	font-family: sans-serif;
+}
+
 #field_container, #solve_overlay, #game_overlay {
   max-width: 580px;
 }
@@ -125,15 +130,20 @@
     background: url("img/rootEnd.png");
 }
 
-#refresh, #undo {
+#refresh, #reveal {
     margin-top: 20px;
     padding: 5px;
     cursor: pointer;
     border: 1px solid;
-    width: 70px;
+    width: 90px;
     -webkit-user-select: none;
     display: inline-block;
+    text-align:center;
     vertical-align: top;
+}
+
+#warning {
+    
 }
 
 #solve_overlay, #game_overlay {
@@ -165,6 +175,10 @@
 
 .tile.revealed {
     background: none;
+}
+
+.tile.Shallowed_soil {
+    background: url("img/shallow.png");
 }
 
 #victory {
